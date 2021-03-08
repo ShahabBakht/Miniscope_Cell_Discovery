@@ -180,8 +180,17 @@ class AE_SlotAttention(nn.Module):
         
     def forward(self, x):
         
+        if x.ndim == 5:
+            multi_frame = True
+            B, C, T, W, H = x.shape
+            x = x.permute((0,2,1,3,4)).reshape((B * T, C, W, H))
+        
         x = self.conv_backend(x)
         
+        if multi_frame is True:
+            BT, N, D = x.shape
+            x = x.reshape((B, T, N, D))
+            
         x = self.slot_attention(x)
         
         x_recon, mask = self.deconv_backend(x)
